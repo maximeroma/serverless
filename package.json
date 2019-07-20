@@ -1,0 +1,31 @@
+{
+  "name": "big-mouth",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "test:unit": "TEST_MODE=handler jest --env=node",
+    "test:debug": "node --inspect-brk ./node_modules/.bin/jest -i --env=node",
+    "test:e2e": "TEST_MODE=http TEST_ROOT=https://65lbw6a68l.execute-api.us-east-1.amazonaws.com/dev jest --env=node"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws4": "^1.8.0",
+    "bluebird": "^3.5.5",
+    "co": "^4.6.0",
+    "lodash": "^4.17.14",
+    "mustache": "^3.0.1",
+    "superagent": "^5.1.0",
+    "awscred": "^1.4.2"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.493.0",
+    "chance": "^1.0.18",
+    "cheerio": "^1.0.0-rc.3",
+    "jest": "^24.8.0",
+    "serverless": "^1.48.2",
+    "serverless-pseudo-parameters": "^2.4.0",
+    "serverless-sam": "^0.2.0"
+  }
+}
