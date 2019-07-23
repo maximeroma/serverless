@@ -1,0 +1,9 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - chmod +x build.sh
+      - ./build.sh test-unit
+      - ./build.sh deploy dev
+      - ./build.sh test-e2e
