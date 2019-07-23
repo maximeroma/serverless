@@ -4,6 +4,8 @@ const Mustache = require("mustache")
 const http = require("superagent")
 const aws4 = require("aws4")
 const URL = require("url")
+const Promise = require("bluebird")
+const awscred = Promise.promisifyAll(require("awscred"))
 
 const awsRegion = process.env.AWS_REGION
 const cognitoUserPoolId = process.env.cognito_user_pool_id
@@ -35,6 +37,18 @@ const getRestaurants = async () => {
   const opts = {
     host: url.hostname,
     path: url.pathname
+  }
+
+  let cred
+
+  if (!process.env.AWS_ACCESS_KEY_ID) {
+    cred = (await awscred.loadAsync()).credentials
+    process.env.AWS_ACCESS_KEY_ID = cred.accessKeyId
+    process.env.AWS_SECRET_ACCESS_KEY = cred.secretAccessKey
+
+    if (cred.sessionToken) {
+      process.env.AWS_SESSION_TOKEN = cred.sessionToken
+    }
   }
 
   aws4.sign(opts)
