@@ -26,6 +26,7 @@
     "jest": "^24.8.0",
     "serverless": "^1.48.2",
     "serverless-pseudo-parameters": "^2.4.0",
-    "serverless-sam": "^0.2.0"
+    "serverless-sam": "^0.2.0",
+    "serverless-secrets-plugin": "^0.1.0"
   }
 }

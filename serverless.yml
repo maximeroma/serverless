@@ -3,6 +3,7 @@ service: big-mouth
 plugins:
   - serverless-pseudo-parameters
   - serverless-sam
+  - serverless-secrets-plugin
 
 provider:
   name: aws
@@ -14,6 +15,9 @@ provider:
     - Effect: Allow
       Action: execute-api:invoke
       Resource: arn:aws:execute-api:#{AWS::Region}:#{AWS::AccountId}:*/*/GET/restaurants
+
+custom:
+  secretsFilePathPrefix: config
 
 functions:
   get-index:

@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-set -o pipefail
+#set -o pipefail
 
 instruction(){
   echo "usage: ./build.sh deploy <env>"
