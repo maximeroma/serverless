@@ -1,0 +1,54 @@
+Arguments: 
+  /home/roma/.nvm/versions/node/v8.14.0/bin/node /usr/share/yarn/bin/yarn.js install
+
+PATH: 
+  /home/roma/.nvm/versions/node/v8.14.0/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/roma/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+
+Yarn version: 
+  1.17.3
+
+Node version: 
+  8.14.0
+
+Platform: 
+  linux x64
+
+Trace: 
+  Error: https://registry.yarnpkg.com/mime/-/mime-2.4.4.tgz: EACCES: permission denied, open '/home/roma/node_modules/mime-2.4.4.tgz'
+
+npm manifest: 
+  {
+    "name": "big-mouth",
+    "version": "1.0.0",
+    "description": "",
+    "main": "handler.js",
+    "scripts": {
+      "test:unit": "TEST_MODE=handler jest --env=node --testTimeout=10000",
+      "test:debug": "node --inspect-brk ./node_modules/.bin/jest -i --env=node",
+      "test:e2e": "TEST_MODE=http TEST_ROOT=https://65lbw6a68l.execute-api.us-east-1.amazonaws.com/dev jest --env=node --testTimeout=10000"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+      "bluebird": "^3.5.5",
+      "co": "^4.6.0",
+      "lodash": "^4.17.14",
+      "mustache": "^3.0.1",
+      "superagent": "^5.1.0",
+      "chance": "^1.0.18"
+    },
+    "devDependencies": {
+      "aws-sdk": "^2.493.0",
+      "cheerio": "^1.0.0-rc.3",
+      "jest": "^24.8.0",
+      "serverless": "1.48.0",
+      "serverless-pseudo-parameters": "^2.4.0",
+      "serverless-sam": "^0.2.0"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

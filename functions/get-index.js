@@ -10,6 +10,7 @@ const awsRegion = process.env.AWS_REGION
 const cognitoUserPoolId = process.env.cognito_user_pool_id
 const cognitoClientId = process.env.cognito_client_id
 const restaurantsApiRoot = process.env.restaurants_api
+const ordersApiRoot = process.env.orders_api
 
 const readFileAsync = util.promisify(fs.readFile)
 const DAYS = [
@@ -65,7 +66,8 @@ module.exports.handler = async (event, context, callback) => {
     awsRegion,
     cognitoUserPoolId,
     cognitoClientId,
-    searchUrl: `${restaurantsApiRoot}/search`
+    searchUrl: `${restaurantsApiRoot}/search`,
+    placeOrderUrl: `${ordersApiRoot}`
   }
   const html = Mustache.render(template, view)
   const response = {
