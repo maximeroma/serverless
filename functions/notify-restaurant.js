@@ -1,9 +1,7 @@
 const AWS = require("aws-sdk")
-const kinesis = new AWS.Kinesis()
-const sns = new AWS.SNS()
 const {getRecords} = require("../lib/kinesis")
-const streamName = process.env.order_events_stream
-const topicArn = process.env.restaurant_notification_topic
+const notify = require("../lib/notify")
+const retry = require("../lib/retry")
 
 module.exports.handler = async (event, context, cb) => {
   const records = getRecords(event)
@@ -11,26 +9,11 @@ module.exports.handler = async (event, context, cb) => {
   const orderPlaced = records.filter(r => r.eventType === "order_placed")
 
   for (const order of orderPlaced) {
-    const pubReq = {
-      Message: JSON.stringify(order),
-      TopicArn: topicArn
+    try {
+      await notify.restaurantOfOrder(order)
+    } catch (e) {
+      await retry.restaurantNotification(order)
     }
-    await sns.publish(pubReq).promise()
-
-    console.log(
-      `notified restaurant [${order.restaurantName}] of order [${order.orderId}]`
-    )
-
-    const data = {...order, EventType: "restaurant_notified"}
-
-    const putRecordReq = {
-      Data: JSON.stringify(data),
-      PartitionKey: data.orderId,
-      StreamName: streamName
-    }
-    await kinesis.putRecord(putRecordReq).promise()
-
-    console.log(`published 'restaurant_notified' event to Kinesis`)
   }
 
   cb(null, "all done")
