@@ -23,6 +23,7 @@
     "cheerio": "^1.0.0-rc.3",
     "jest": "^24.8.0",
     "serverless": "1.48.0",
+    "serverless-iam-roles-per-function": "^2.0.2",
     "serverless-pseudo-parameters": "^2.4.0",
     "serverless-sam": "^0.2.0"
   }
