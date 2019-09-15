@@ -1,6 +1,8 @@
 const co = require("co")
 const AWS = require("aws-sdk")
 const dynamodb = new AWS.DynamoDB.DocumentClient()
+const middy = require("middy")
+const sampleLogging = require("../middleware/sample-logging")
 
 const defaultResults = process.env.defaultResults || 8
 const tablename = process.env.restaurants_table
@@ -18,7 +20,7 @@ const findRestaurantsByTheme = async (theme, count) => {
   return resp.Items
 }
 
-module.exports.handler = async (event, context, cb) => {
+const handler = async (event, context, cb) => {
   const req = JSON.parse(event.body)
   const restaurants = await findRestaurantsByTheme(req.theme, defaultResults)
   const response = {
@@ -28,3 +30,5 @@ module.exports.handler = async (event, context, cb) => {
 
   cb(null, response)
 }
+
+module.exports.handler = middy(handler).use(sampleLogging({sampleRate: 0.01}))

@@ -12,11 +12,12 @@
   "license": "ISC",
   "dependencies": {
     "bluebird": "^3.5.5",
+    "chance": "^1.0.18",
     "co": "^4.6.0",
     "lodash": "^4.17.14",
+    "middy": "^0.29.0",
     "mustache": "^3.0.1",
-    "superagent": "^5.1.0",
-    "chance": "^1.0.18"
+    "superagent": "^5.1.0"
   },
   "devDependencies": {
     "aws-sdk": "^2.493.0",

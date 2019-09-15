@@ -3,8 +3,10 @@ const fs = require("fs")
 const Mustache = require("mustache")
 const http = require("superagent")
 const aws4 = require("../lib/aws4")
+const log = require("../lib/log")
 const URL = require("url")
-const Promise = require("bluebird")
+const middy = require("middy")
+const sampleLogging = require("../middleware/sample-logging")
 
 const awsRegion = process.env.AWS_REGION
 const cognitoUserPoolId = process.env.cognito_user_pool_id
@@ -55,10 +57,12 @@ const getRestaurants = async () => {
   return resp.body
 }
 
-module.exports.handler = async (event, context, callback) => {
+const handler = async (event, context, callback) => {
   await aws4.init()
   const template = await loadHTML()
+  log.debug("loaded html template")
   const restaurants = await getRestaurants()
+  log.debug(`loaded ${restaurants.length} restaurants`)
   const dayOfWeek = DAYS[new Date().getDay()]
   const view = {
     dayOfWeek,
@@ -70,6 +74,7 @@ module.exports.handler = async (event, context, callback) => {
     placeOrderUrl: `${ordersApiRoot}`
   }
   const html = Mustache.render(template, view)
+  log.debug(`generated html ${html.length} bytes`)
   const response = {
     statusCode: 200,
     body: html,
@@ -79,7 +84,6 @@ module.exports.handler = async (event, context, callback) => {
   }
 
   callback(null, response)
-
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };
 }
+
+module.exports.handler = middy(handler).use(sampleLogging({sampleRate: 0.01}))

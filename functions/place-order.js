@@ -1,15 +1,18 @@
 const AWS = require("aws-sdk")
 const chance = require("chance").Chance()
 const kinesis = new AWS.Kinesis()
+const log = require("../lib/log")
+const middy = require("middy")
+const sampleLogging = require("../middleware/sample-logging")
 const streamName = process.env.order_events_stream
 
-module.exports.handler = async (event, context, cb) => {
-  const {restaurantName} = JSON.parse(event.body)
+const handler = async (event, context, cb) => {
+  const body = JSON.parse(event.body)
+  log.debug("request body is a valid JSON", {requestBody: event.body})
+  const {restaurantName} = body
   const {email: userEmail} = event.requestContext.authorizer.claims
   const orderId = chance.guid()
-  console.log(
-    `placing order ID [${orderId}] to [${restaurantName}] from user [${userEmail}]`
-  )
+  log.debug(`placing order...`, {orderId, restaurantName, userEmail})
 
   const data = {
     orderId,
@@ -24,7 +27,7 @@ module.exports.handler = async (event, context, cb) => {
   }
   await kinesis.putRecord(putReq).promise()
 
-  console.log('published "order_placed" event to kinesis')
+  log.debug("published event to kinesis...", {eventName: "order_placed"})
 
   const response = {
     body: JSON.stringify({orderId}),
@@ -33,3 +36,5 @@ module.exports.handler = async (event, context, cb) => {
 
   cb(null, response)
 }
+
+module.exports.handler = middy(handler).use(sampleLogging({sampleRate: 0.01}))

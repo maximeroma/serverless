@@ -1,6 +1,8 @@
 const notify = require("../lib/notify")
+const middy = require("middy")
+const samplaLogging = require("../middleware/sample-logging")
 
-module.exports.handler = async (event, context, cb) => {
+const handler = async (event, context, cb) => {
   const order = {
     ...JSON.parse(event.Records[0].Sns.Message),
     retried: true
@@ -13,3 +15,5 @@ module.exports.handler = async (event, context, cb) => {
     cb(err)
   }
 }
+
+module.exports.handler = middy(handler).use(samplaLogging({sampleRate: 0.01}))

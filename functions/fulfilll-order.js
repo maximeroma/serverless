@@ -1,16 +1,22 @@
 const AWS = require("aws-sdk")
 const kinesis = new AWS.Kinesis()
+const log = require("../lib/log")
+const middy = requrie("middy")
+const sampleLogging = require("../middleware/sample-logging")
+
 const streamName = process.env.order_events_stream
 
-module.exports.handler = async (event, context, cb) => {
+handler = async (event, context, cb) => {
   const body = JSON.parse(event.body)
   const restaurantName = body.restaurantName
   const orderId = body.orderId
   const userEmail = body.userEmail
 
-  console.log(
-    `restaurant [${restaurantName}] has fulfilled order ID [${orderId}] from user [${userEmail}]`
-  )
+  log.debug(`restaurant has fulfilled order ID from user...`, {
+    restaurantName,
+    orderId,
+    userEmail
+  })
 
   const data = {
     orderId,
@@ -27,7 +33,7 @@ module.exports.handler = async (event, context, cb) => {
 
   await kinesis.putRecord(req).promise()
 
-  console.log(`published 'order_fulfilled' event into Kinesis`)
+  log.debug(`published 'order_fulfilled' event into Kinesis`)
 
   const response = {
     statusCode: 200,
@@ -36,3 +42,5 @@ module.exports.handler = async (event, context, cb) => {
 
   cb(null, response)
 }
+
+module.exports.handler = middy(handler).use(sampleLogging({sampleRate: 0.01}))
