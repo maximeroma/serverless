@@ -7,6 +7,7 @@ const log = require("../lib/log")
 const URL = require("url")
 const middy = require("middy")
 const sampleLogging = require("../middleware/sample-logging")
+const cloudwatch = require("../lib/cloudwatch")
 
 const awsRegion = process.env.AWS_REGION
 const cognitoUserPoolId = process.env.cognito_user_pool_id
@@ -61,7 +62,10 @@ const handler = async (event, context, callback) => {
   await aws4.init()
   const template = await loadHTML()
   log.debug("loaded html template")
-  const restaurants = await getRestaurants()
+  const restaurants = await cloudwatch.trackExecTime(
+    "GetRestaurantsLatency",
+    () => getRestaurants()
+  )
   log.debug(`loaded ${restaurants.length} restaurants`)
   const dayOfWeek = DAYS[new Date().getDay()]
   const view = {
@@ -75,6 +79,7 @@ const handler = async (event, context, callback) => {
   }
   const html = Mustache.render(template, view)
   log.debug(`generated html ${html.length} bytes`)
+  cloudwatch.incrCount("RestaurantsReturned", () => restaurants.length)
   const response = {
     statusCode: 200,
     body: html,

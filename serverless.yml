@@ -5,17 +5,23 @@ plugins:
   - serverless-sam
   - serverless-iam-roles-per-function
 
-custom:
-  stage: ${opt:stage, self:provider.stage}
-  logLevel:
-    prod: WARN
-    default: INFO
-
 provider:
   name: aws
   runtime: nodejs10.x
   environment:
     log_level: ${self:custom.logLevel.${self:custom.stage}, self:custom.logLevel.default}
+  iamRoleStatements:
+    - Effect: Allow
+      Action: cloudwatch:PutMetricData
+      Resource: "*"
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  logLevel:
+    prod: WARN
+    default: INFO
+  serverless-iam-roles-per-function:
+    defaultInherit: true
 
 functions:
   get-index:
@@ -29,6 +35,7 @@ functions:
       cognito_user_pool_id: us-east-1_9zfVQJGMO
       cognito_client_id: 3kjhqi44gnci7mfjraijfua11k
       orders_api: https://w2v9w037yg.execute-api.us-east-1.amazonaws.com/dev/orders
+      async_metrics: true
     iamRoleStatements:
       - Effect: Allow
         Action: execute-api:invoke
@@ -43,6 +50,7 @@ functions:
           authorizer: aws_iam
     environment:
       restaurants_table: restaurants
+      async_metrics: true
     iamRoleStatements:
       - Effect: Allow
         Action: dynamodb:scan
@@ -58,6 +66,7 @@ functions:
             arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/us-east-1_9zfVQJGMO
     environment:
       restaurants_table: restaurants
+      async_metrics: true
     iamRoleStatements:
       - Effect: Allow
         Action: dynamodb:scan
@@ -73,6 +82,7 @@ functions:
             arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/us-east-1_9zfVQJGMO
     environment:
       order_events_stream: order-events
+      async_metrics: true
     iamRoleStatements:
       - Effect: Allow
         Action: kinesis:PutRecord
@@ -122,6 +132,7 @@ functions:
           method: post
     environment:
       order_events_stream: order-events
+      async_metrics: true
     iamRoleStatements:
       - Effect: Allow
         Action: kinesis:PutRecord
@@ -152,6 +163,7 @@ functions:
           method: post
     environment:
       order_events_stream: order-events
+      async_metrics: true
     iamRoleStatements:
       - Effect: Allow
         Action: kinesis:PutRecord

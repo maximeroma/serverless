@@ -4,6 +4,7 @@ const dynamodb = new AWS.DynamoDB.DocumentClient()
 const log = require("../lib/log")
 const middy = require("middy")
 const sampleLogging = require("../middleware/sample-logging")
+const cloudwatch = require("../lib/cloudwatch")
 
 const defaultResults = process.env.defaultResults || 8
 const tablename = process.env.restaurants_table
@@ -11,7 +12,9 @@ const tablename = process.env.restaurants_table
 const getRestaurants = async count => {
   const req = {TableName: tablename, Limit: count}
 
-  const resp = await dynamodb.scan(req).promise()
+  const resp = await cloudwatch.trackExecTime("DynamoDBScanLatency", () =>
+    dynamodb.scan(req).promise()
+  )
 
   return resp.Items
 }
@@ -19,6 +22,7 @@ const getRestaurants = async count => {
 const handler = async (event, context, cb) => {
   const restaurants = await getRestaurants(defaultResults)
   log.debug(`fetched ${restaurants.length} restaurants`)
+  cloudwatch.incrCount("RestaurantsReturned", () => restaurants.length)
   const response = {
     statusCode: 200,
     body: JSON.stringify(restaurants)

@@ -4,6 +4,7 @@ const kinesis = new AWS.Kinesis()
 const log = require("../lib/log")
 const middy = require("middy")
 const sampleLogging = require("../middleware/sample-logging")
+const cloudwatch = require("../lib/cloudwatch")
 const streamName = process.env.order_events_stream
 
 const handler = async (event, context, cb) => {
@@ -25,7 +26,9 @@ const handler = async (event, context, cb) => {
     PartitionKey: orderId,
     StreamName: streamName
   }
-  await kinesis.putRecord(putReq).promise()
+  await cloudwatch.trackExecTime("KinesisPutRecordLatency", () =>
+    kinesis.putRecord(putReq).promise()
+  )
 
   log.debug("published event to kinesis...", {eventName: "order_placed"})
 

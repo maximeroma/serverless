@@ -1,6 +1,7 @@
 const notify = require("../lib/notify")
 const middy = require("middy")
 const samplaLogging = require("../middleware/sample-logging")
+const flushMetrics = require("../middleware/flush-metrics")
 
 const handler = async (event, context, cb) => {
   const order = {
@@ -16,4 +17,6 @@ const handler = async (event, context, cb) => {
   }
 }
 
-module.exports.handler = middy(handler).use(samplaLogging({sampleRate: 0.01}))
+module.exports.handler = middy(handler)
+  .use(samplaLogging({sampleRate: 0.01}))
+  .use(flushMetrics)

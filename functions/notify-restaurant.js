@@ -4,6 +4,7 @@ const notify = require("../lib/notify")
 const retry = require("../lib/retry")
 const middy = require("middy")
 const sampleLogging = require("../middleware/sample-logging")
+const flushMetrics = require("../middleware/flush-metrics")
 
 const handler = async (event, context, cb) => {
   const records = getRecords(event)
@@ -21,4 +22,6 @@ const handler = async (event, context, cb) => {
   cb(null, "all done")
 }
 
-module.exports.handler = middy(handler).use(sampleLogging({sampleRate: 0.01}))
+module.exports.handler = middy(handler)
+  .use(sampleLogging({sampleRate: 0.01}))
+  .use(flushMetrics)
