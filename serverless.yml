@@ -209,41 +209,6 @@ functions:
         Resource: "*"
 
 resources:
-  Resources:
-    RestaurantsTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: restaurants
-        AttributeDefinitions:
-          - AttributeName: name
-            AttributeType: S
-        KeySchema:
-          - AttributeName: name
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-
-    orderEventsStream:
-      Type: AWS::Kinesis::Stream
-      Properties:
-        Name: order-events
-        ShardCount: 1
-
-    restaurantNotificationTopic:
-      Type: AWS::SNS::Topic
-      Properties:
-        DisplayName: restaurant-notification
-        TopicName: restaurant-notification
-
-    restaurantNotificationDlqTopic:
-      Type: AWS::SNS::Topic
-      Properties:
-        DisplayName: restaurant-notification-dlq
-        TopicName: restaurant-notification-dlq
-
-    userNotificationTopic:
-      Type: AWS::SNS::Topic
-      Properties:
-        DisplayName: user-notification
-        TopicName: user-notification
+  - ${file(resources/sns.yml)}
+  - ${file(resources/kinesis.yml)}
+  - ${file(resources/dynamodb.yml)}

@@ -1,0 +1,18 @@
+Resources:
+  restaurantNotificationTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: restaurant-notification
+        TopicName: restaurant-notification
+
+    restaurantNotificationDlqTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: restaurant-notification-dlq
+        TopicName: restaurant-notification-dlq
+
+    userNotificationTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: user-notification
+        TopicName: user-notification
