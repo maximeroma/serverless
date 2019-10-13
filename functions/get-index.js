@@ -1,3 +1,4 @@
+const AWSXray = require("aws-xray-sdk")
 const util = require("util")
 const fs = require("fs")
 const Mustache = require("mustache")
@@ -7,6 +8,7 @@ const log = require("../lib/log")
 const URL = require("url")
 const middy = require("middy")
 const sampleLogging = require("../middleware/sample-logging")
+const flushMetrics = require("../middleware/flush-metrics")
 const cloudwatch = require("../lib/cloudwatch")
 
 const awsRegion = process.env.AWS_REGION
@@ -53,15 +55,31 @@ const getRestaurants = async () => {
   if (opts.headers["X-Amz-Security-Token"]) {
     httpReq.set("X-Amz-Security-Token", opts.headers["X-Amz-Security-Token"])
   }
-  const resp = await httpReq
 
-  return resp.body
+  return new Promise((resolve, reject) => {
+    const f = async subsegment => {
+      subsegment.addMetadata("url", restaurantsApiRoot)
+
+      try {
+        const resp = await httpReq
+        subsegment.close()
+        resolve(resp.body)
+      } catch (err) {
+        subsegment.close(err)
+        reject(err)
+      }
+    }
+    const segment = AWSXray.getSegment()
+    AWSXray.captureAsyncFunc("getting restaurants", f, segment)
+  })
 }
 
 const handler = async (event, context, callback) => {
   await aws4.init()
   const template = await loadHTML()
+
   log.debug("loaded html template")
+
   const restaurants = await cloudwatch.trackExecTime(
     "GetRestaurantsLatency",
     () => getRestaurants()
@@ -79,7 +97,7 @@ const handler = async (event, context, callback) => {
   }
   const html = Mustache.render(template, view)
   log.debug(`generated html ${html.length} bytes`)
-  cloudwatch.incrCount("RestaurantsReturned", () => restaurants.length)
+  cloudwatch.incrCount("RestaurantsReturned", restaurants.length)
   const response = {
     statusCode: 200,
     body: html,
@@ -91,4 +109,6 @@ const handler = async (event, context, callback) => {
   callback(null, response)
 }
 
-module.exports.handler = middy(handler).use(sampleLogging({sampleRate: 0.01}))
+module.exports.handler = middy(handler)
+  .use(sampleLogging({sampleRate: 1}))
+  .use(flushMetrics)

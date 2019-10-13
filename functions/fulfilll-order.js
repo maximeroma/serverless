@@ -1,4 +1,5 @@
-const AWS = require("aws-sdk")
+const AWSXray = require("aws-xray-sdk")
+const AWS = AWSXray.captureAWS(require("aws-sdk"))
 const kinesis = new AWS.Kinesis()
 const log = require("../lib/log")
 const middy = requrie("middy")

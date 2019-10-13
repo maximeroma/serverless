@@ -1,10 +1,13 @@
-const AWS = require("aws-sdk")
+const AWSXray = require("aws-xray-sdk")
+const AWS = AWSXray.captureAWS(require("aws-sdk"))
 const chance = require("chance").Chance()
 const kinesis = new AWS.Kinesis()
 const log = require("../lib/log")
 const middy = require("middy")
 const sampleLogging = require("../middleware/sample-logging")
 const cloudwatch = require("../lib/cloudwatch")
+const flushMetrics = require("../middleware/flush-metrics")
+
 const streamName = process.env.order_events_stream
 
 const handler = async (event, context, cb) => {
@@ -40,4 +43,6 @@ const handler = async (event, context, cb) => {
   cb(null, response)
 }
 
-module.exports.handler = middy(handler).use(sampleLogging({sampleRate: 0.01}))
+module.exports.handler = middy(handler)
+  .use(sampleLogging({sampleRate: 1}))
+  .use(flushMetrics)

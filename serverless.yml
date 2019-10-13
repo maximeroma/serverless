@@ -4,15 +4,22 @@ plugins:
   - serverless-pseudo-parameters
   - serverless-sam
   - serverless-iam-roles-per-function
+  - serverless-plugin-tracing
 
 provider:
   name: aws
   runtime: nodejs10.x
+  tracing: true
   environment:
     log_level: ${self:custom.logLevel.${self:custom.stage}, self:custom.logLevel.default}
   iamRoleStatements:
     - Effect: Allow
       Action: cloudwatch:PutMetricData
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - xray:PutTraceSegments
+        - xray:PutTelemetryRecords
       Resource: "*"
 
 custom:
@@ -31,10 +38,10 @@ functions:
           path: /
           method: get
     environment:
-      restaurants_api: https://w2v9w037yg.execute-api.us-east-1.amazonaws.com/dev/restaurants
-      cognito_user_pool_id: us-east-1_9zfVQJGMO
-      cognito_client_id: 3kjhqi44gnci7mfjraijfua11k
-      orders_api: https://w2v9w037yg.execute-api.us-east-1.amazonaws.com/dev/orders
+      restaurants_api: https://8qts1x7xdi.execute-api.us-east-1.amazonaws.com/dev/restaurants
+      cognito_user_pool_id: us-east-1_Ln0CECBb3
+      cognito_client_id: 6db9o9i75eissgg6ersb6cvd8a
+      orders_api: https://8qts1x7xdi.execute-api.us-east-1.amazonaws.com/dev/orders
       async_metrics: true
     iamRoleStatements:
       - Effect: Allow
@@ -63,7 +70,7 @@ functions:
           path: /restaurants/search
           method: post
           authorizer:
-            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/us-east-1_9zfVQJGMO
+            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/us-east-1_Ln0CECBb3
     environment:
       restaurants_table: restaurants
       async_metrics: true
@@ -79,7 +86,7 @@ functions:
           path: /orders
           method: post
           authorizer:
-            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/us-east-1_9zfVQJGMO
+            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/us-east-1_Ln0CECBb3
     environment:
       order_events_stream: order-events
       async_metrics: true
@@ -168,6 +175,38 @@ functions:
       - Effect: Allow
         Action: kinesis:PutRecord
         Resource: arn:aws:kinesis:#{AWS::Region}:#{AWS::AccountId}:stream/order-events
+
+  auto-create-api-alarms:
+    handler: functions/create-alarms.handler
+    events:
+      - cloudwatchEvent:
+          event:
+            source:
+              - aws.apigateway
+            detail-type:
+              - AWS API Call via CloudTrail
+            detail:
+              eventSource:
+                - apigateway.amazonaws.com
+              eventName:
+                - CreateDeployment
+    environment:
+      alarm_actions: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:NotifyMe
+      ok_actions: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:NotifyMe
+    tracing: false
+    iamRoleStatements:
+      - Effect: Allow
+        Action: apigateway:GET
+        Resource:
+          - arn:aws:apigateway:#{AWS::Region}::/restapis/*
+          - arn:aws:apigateway:#{AWS::Region}::/restapis/*/stages/${self:custom.stage}
+      - Effect: Allow
+        Action: apigateway:PATCH
+        Resource:
+          - arn:aws:apigateway:#{AWS::Region}::/restapis/*/stages/${self:custom.stage}
+      - Effect: Allow
+        Action: cloudwatch:PutMetricAlarm
+        Resource: "*"
 
 resources:
   Resources:
