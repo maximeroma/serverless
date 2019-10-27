@@ -2,13 +2,14 @@ const AWSXray = require("aws-xray-sdk")
 const util = require("util")
 const fs = require("fs")
 const Mustache = require("mustache")
-const http = require("superagent")
+const http = require("../lib/http")
 const aws4 = require("../lib/aws4")
 const log = require("../lib/log")
 const URL = require("url")
 const middy = require("middy")
 const sampleLogging = require("../middleware/sample-logging")
 const flushMetrics = require("../middleware/flush-metrics")
+const correlationIds = require("../middleware/capture-correlation-ids")
 const cloudwatch = require("../lib/cloudwatch")
 
 const awsRegion = process.env.AWS_REGION
@@ -46,15 +47,11 @@ const getRestaurants = async () => {
 
   aws4.sign(opts)
 
-  const httpReq = http
-    .get(restaurantsApiRoot)
-    .set("Host", opts.headers["Host"])
-    .set("X-Amz-Date", opts.headers["X-Amz-Date"])
-    .set("Authorization", opts.headers["Authorization"])
-
-  if (opts.headers["X-Amz-Security-Token"]) {
-    httpReq.set("X-Amz-Security-Token", opts.headers["X-Amz-Security-Token"])
-  }
+  const httpReq = http({
+    uri: restaurantsApiRoot,
+    method: "get",
+    headers: opts.headers
+  })
 
   return new Promise((resolve, reject) => {
     const f = async subsegment => {
@@ -110,5 +107,6 @@ const handler = async (event, context, callback) => {
 }
 
 module.exports.handler = middy(handler)
+  .use(correlationIds({sampleDebugLogRate: 1}))
   .use(sampleLogging({sampleRate: 1}))
   .use(flushMetrics)

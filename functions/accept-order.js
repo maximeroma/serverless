@@ -1,9 +1,8 @@
-const AWSXray = require("aws-xray-sdk")
-const AWS = AWSXray.captureAWS(require("aws-sdk"))
-const kinesis = new AWS.Kinesis()
+const kinesis = require("../lib/kinesis")
 const log = require("../lib/log")
 const middy = require("middy")
 const sampleLogging = require("../middleware/sample-logging")
+const captureCorrelationIds = require("../middleware/capture-correlation-ids")
 
 const streamName = process.env.order_events_stream
 
@@ -44,4 +43,6 @@ const handler = async (event, context, cb) => {
   cb(null, response)
 }
 
-module.exports.handler = middy(handler).use(sampleLogging({sampleRate: 0.01}))
+module.exports.handler = middy(handler)
+  .use(captureCorrelationIds({sampleDebugLogRate: 0.01}))
+  .use(sampleLogging({sampleRate: 0.01}))

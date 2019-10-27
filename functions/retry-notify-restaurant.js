@@ -2,6 +2,7 @@ const notify = require("../lib/notify")
 const middy = require("middy")
 const samplaLogging = require("../middleware/sample-logging")
 const flushMetrics = require("../middleware/flush-metrics")
+const captureCorrelationIds = require("../middleware/capture-correlation-ids")
 
 const handler = async (event, context, cb) => {
   const order = {
@@ -18,5 +19,6 @@ const handler = async (event, context, cb) => {
 }
 
 module.exports.handler = middy(handler)
+  .use(captureCorrelationIds({sampleDebugLogRate: 0.01}))
   .use(samplaLogging({sampleRate: 0.01}))
   .use(flushMetrics)

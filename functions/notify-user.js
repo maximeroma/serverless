@@ -1,21 +1,21 @@
 const _ = require("lodash")
-const getRecords = require("../lib/kinesis").getRecords
-const AWSXray = require("aws-xray-sdk")
-const AWS = AWSXray.captureAWS(require("aws-sdk"))
 const log = require("../lib/log")
 const middy = require("middy")
 const sampleLogging = require("../middleware/sample-logging")
+const captureCorrelationIds = require("../middleware/capture-correlation-ids")
 
-const kinesis = new AWS.Kinesis()
-const sns = new AWS.SNS()
+const kinesis = require("../lib/kinesis")
+const sns = require("../lib/sns")
 const streamName = process.env.order_events_stream
 const topicArn = process.env.user_notification_topic
 
 const handler = async (event, context, cb) => {
-  const records = getRecords(event)
+  const records = context.parsedKinesisEvents
+
   const orderAccepted = records.filter(r => r.eventType === "order_accepted")
 
   for (const order of orderAccepted) {
+    order.scopeToThis()
     const snsReq = {
       Message: JSON.stringify(order),
       TopicArn: topicArn
@@ -37,9 +37,13 @@ const handler = async (event, context, cb) => {
     log.debug(`published 'user_notified' event to Kinesis`, {
       orderId: order.orderId
     })
+
+    order.unscope()
   }
 
   cb(null, "all done")
 }
 
-module.exports.handler = middy(handler).use(sampleLogging({sampleRate: 0.01}))
+module.exports.handler = middy(handler)
+  .use(captureCorrelationIds({sampleDebugLogRate: 0.01}))
+  .use(sampleLogging({sampleRate: 0.01}))

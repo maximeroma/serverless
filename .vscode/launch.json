@@ -9,10 +9,18 @@
       "request": "launch",
       "name": "get restaurants",
       "program": "${workspaceFolder}/node_modules/.bin/sls",
-      "args": ["invoke", "local", "-f", "get-restaurants", "-d", "{}"],
+      "args": [
+        "invoke",
+        "local",
+        "-f",
+        "get-restaurants",
+        "-p",
+        "examples/get-restaurants.json"
+      ],
       "env": {
         "restaurants_table": "restaurants",
-        "AWS_PROFILE": "txm-user"
+        "AWS_PROFILE": "serverless-app",
+        "AWS_XRAY_CONTEXT_MISSING": "LOG_ERROR"
       }
     },
     {
@@ -38,12 +46,20 @@
       "request": "launch",
       "name": "get index",
       "program": "${workspaceFolder}/node_modules/.bin/sls",
-      "args": ["invoke", "local", "-f", "get-index", "-d", "{}"],
+      "args": [
+        "invoke",
+        "local",
+        "-f",
+        "get-index",
+        "-p",
+        "examples/get-index.json"
+      ],
       "env": {
-        "AWS_PROFILE": "txm-user",
-        "restaurants_api": "https://65lbw6a68l.execute-api.us-east-1.amazonaws.com/dev/restaurants",
-        "cognito_user_pool_id": "us-east-1_9zfVQJGMO",
-        "cognito_client_id": "3kjhqi44gnci7mfjraijfua11k"
+        "AWS_PROFILE": "serverless-app",
+        "restaurants_api": "https://8qts1x7xdi.execute-api.us-east-1.amazonaws.com/dev/restaurants",
+        "cognito_user_pool_id": "us-east-1_Ln0CECBb3",
+        "cognito_client_id": "6db9o9i75eissgg6ersb6cvd8a",
+        "AWS_XRAY_CONTEXT_MISSING": "LOG_ERROR"
       }
     }
   ]

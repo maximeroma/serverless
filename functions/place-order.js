@@ -1,12 +1,14 @@
 const AWSXray = require("aws-xray-sdk")
 const AWS = AWSXray.captureAWS(require("aws-sdk"))
 const chance = require("chance").Chance()
-const kinesis = new AWS.Kinesis()
+const kinesis = require("../lib/kinesis")
+const cloudwatch = require("../lib/cloudwatch")
 const log = require("../lib/log")
+const correlationIds = require("../lib/correlation-ids")
 const middy = require("middy")
 const sampleLogging = require("../middleware/sample-logging")
-const cloudwatch = require("../lib/cloudwatch")
 const flushMetrics = require("../middleware/flush-metrics")
+const captureCorrelationIds = require("../middleware/capture-correlation-ids")
 
 const streamName = process.env.order_events_stream
 
@@ -17,6 +19,10 @@ const handler = async (event, context, cb) => {
   const {email: userEmail} = event.requestContext.authorizer.claims
   const orderId = chance.guid()
   log.debug(`placing order...`, {orderId, restaurantName, userEmail})
+
+  correlationIds.set("order-id", orderId)
+  correlationIds.set("restaurant-name", restaurantName)
+  correlationIds.set("user-email", userEmail)
 
   const data = {
     orderId,
@@ -44,5 +50,6 @@ const handler = async (event, context, cb) => {
 }
 
 module.exports.handler = middy(handler)
-  .use(sampleLogging({sampleRate: 1}))
+  .use(captureCorrelationIds({sampleDebugLogRate: 0.5}))
+  .use(sampleLogging({sampleRate: 0.01}))
   .use(flushMetrics)
