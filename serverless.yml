@@ -39,10 +39,10 @@ functions:
           path: /
           method: get
     environment:
-      restaurants_api: https://8qts1x7xdi.execute-api.us-east-1.amazonaws.com/dev/restaurants
-      cognito_user_pool_id: us-east-1_Ln0CECBb3
-      cognito_client_id: 6db9o9i75eissgg6ersb6cvd8a
-      orders_api: https://8qts1x7xdi.execute-api.us-east-1.amazonaws.com/dev/orders
+      restaurants_api: ${ssm:/bigmouth/${self:custom.stage}/restaurants_api}
+      cognito_user_pool_id: ${ssm:/bigmouth/${self:custom.stage}/cognito_user_pool_id}
+      cognito_client_id: ${ssm:/bigmouth/${self:custom.stage}/cognito_client_id~true}
+      orders_api: ${ssm:/bigmouth/${self:custom.stage}/orders_api}
       async_metrics: true
     iamRoleStatements:
       - Effect: Allow
@@ -71,7 +71,7 @@ functions:
           path: /restaurants/search
           method: post
           authorizer:
-            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/us-east-1_Ln0CECBb3
+            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/${ssm:/bigmouth/${self:custom.stage}/cognito_user_pool_id}
     environment:
       restaurants_table: restaurants
       async_metrics: true
@@ -87,7 +87,7 @@ functions:
           path: /orders
           method: post
           authorizer:
-            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/us-east-1_Ln0CECBb3
+            arn: arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/${ssm:/bigmouth/${self:custom.stage}/cognito_user_pool_id}
     environment:
       order_events_stream: order-events
       async_metrics: true
