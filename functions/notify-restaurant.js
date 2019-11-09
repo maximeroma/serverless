@@ -1,5 +1,3 @@
-const AWS = require("aws-sdk")
-
 const notify = require("../lib/notify")
 const retry = require("../lib/retry")
 const middy = require("middy")

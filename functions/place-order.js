@@ -1,5 +1,4 @@
-const AWSXray = require("aws-xray-sdk")
-const AWS = AWSXray.captureAWS(require("aws-sdk"))
+const AWS = require("aws-wrapper")
 const chance = require("chance").Chance()
 const kinesis = require("../lib/kinesis")
 const cloudwatch = require("../lib/cloudwatch")

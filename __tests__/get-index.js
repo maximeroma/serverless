@@ -1,6 +1,13 @@
 const cheerio = require("cheerio")
+const AWSXray = require("aws-xray-sdk")
 const {invoke_get_index} = require("../lib/tests")
 const {initTests} = require("../lib/init-tests")
+
+jest.mock("aws-xray-sdk")
+
+AWSXray.captureAsyncFunc.mockImplementation((_, fn) =>
+  fn({addMetadata: jest.fn(), close: jest.fn()})
+)
 
 describe("WHEN we invoke GET / endpoint", () => {
   beforeAll(async () => await initTests())
