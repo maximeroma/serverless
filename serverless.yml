@@ -5,6 +5,8 @@ plugins:
   - serverless-sam
   - serverless-iam-roles-per-function
   - serverless-plugin-tracing
+  - serverless-plugin-canary-deployments
+  - serverless-plugin-aws-alerts
 
 provider:
   name: aws
@@ -13,6 +15,7 @@ provider:
   environment:
     STAGE: ${self:custom.stage}
     log_level: ${self:custom.logLevel.${self:custom.stage}, self:custom.logLevel.default}
+    FUNCTION_SHIELD_TOKEN: ${ssm:/bigmouth/${self:custom.stage}/function_shield_token~true}
   iamRoleStatements:
     - Effect: Allow
       Action: cloudwatch:PutMetricData
@@ -22,6 +25,15 @@ provider:
         - xray:PutTraceSegments
         - xray:PutTelemetryRecords
       Resource: "*"
+    - Effect: Allow
+      Action:
+        - ssm:DescribeParameters
+        - ssm:GetParameters
+      Resource: arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/bigmouth/${self:custom.stage}/*
+    - Effect: Allow
+      Action:
+        - codedeploy:*
+      Resource: "*"
 
 custom:
   stage: ${opt:stage, self:provider.stage}
@@ -30,6 +42,15 @@ custom:
     default: INFO
   serverless-iam-roles-per-function:
     defaultInherit: true
+  alerts:
+    stages:
+      - production
+      - staging
+      - dev
+    alarms:
+      - functionThrottles
+      - functionErrors
+    dashboards: false
 
 functions:
   get-index:
@@ -39,11 +60,12 @@ functions:
           path: /
           method: get
     environment:
-      restaurants_api: ${ssm:/bigmouth/${self:custom.stage}/restaurants_api}
-      cognito_user_pool_id: ${ssm:/bigmouth/${self:custom.stage}/cognito_user_pool_id}
-      cognito_client_id: ${ssm:/bigmouth/${self:custom.stage}/cognito_client_id~true}
-      orders_api: ${ssm:/bigmouth/${self:custom.stage}/orders_api}
       async_metrics: true
+    deploymentSettings:
+      type: Linear10PercentEvery1Minute
+      alias: Live
+      alarms:
+        - GetDashindexFunctionErrorsAlarm
     iamRoleStatements:
       - Effect: Allow
         Action: execute-api:invoke

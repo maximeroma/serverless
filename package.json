@@ -6,11 +6,12 @@
   "scripts": {
     "test:unit": "TEST_MODE=handler jest --env=node --testTimeout=10000",
     "test:debug": "node --inspect-brk ./node_modules/.bin/jest -i --env=node",
-    "test:e2e": "TEST_MODE=http TEST_ROOT=https://p6ex1rw8ag.execute-api.us-east-1.amazonaws.com/dev/ jest --env=node --testTimeout=10000"
+    "test:e2e": "TEST_MODE=http TEST_ROOT=https://p6ex1rw8ag.execute-api.us-east-1.amazonaws.com/dev jest --env=node --testTimeout=10000"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@puresec/function-shield": "^2.0.16",
     "aws-xray-sdk": "^2.4.0",
     "bluebird": "^3.5.5",
     "chance": "^1.0.18",
@@ -26,6 +27,8 @@
     "jest": "^24.8.0",
     "serverless": "1.48.0",
     "serverless-iam-roles-per-function": "^2.0.2",
+    "serverless-plugin-aws-alerts": "^1.4.0",
+    "serverless-plugin-canary-deployments": "^0.4.8",
     "serverless-plugin-tracing": "^2.0.0",
     "serverless-pseudo-parameters": "^2.4.0",
     "serverless-sam": "^0.2.0"
